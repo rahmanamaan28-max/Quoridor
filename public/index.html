@@ -1,0 +1,110 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quoridor Multiplayer</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-chess-board"></i> QUORIDOR</h1>
+            <p>Multiplayer Strategy Game</p>
+        </header>
+
+        <div id="lobby" class="screen active">
+            <div class="lobby-container">
+                <div class="player-card">
+                    <h2>Welcome, <span id="player-name">Player</span>!</h2>
+                    <div class="settings">
+                        <h3>Game Settings</h3>
+                        <div class="setting-group">
+                            <label for="player-count">Number of Players:</label>
+                            <select id="player-count">
+                                <option value="2">2 Players</option>
+                                <option value="3">3 Players</option>
+                                <option value="4">4 Players</option>
+                                <option value="5">5 Players</option>
+                                <option value="6">6 Players</option>
+                            </select>
+                        </div>
+                        <div class="setting-group">
+                            <label for="move-timer">Move Timer (seconds):</label>
+                            <input type="number" id="move-timer" min="10" max="300" value="60">
+                        </div>
+                        <div class="setting-group">
+                            <label for="room-id">Room Code:</label>
+                            <div class="room-input">
+                                <input type="text" id="room-id" placeholder="Enter room code">
+                                <button id="generate-room"><i class="fas fa-dice"></i></button>
+                            </div>
+                        </div>
+                    </div>
+                    <button id="create-room" class="btn-primary">Create Game</button>
+                    <button id="join-room" class="btn-secondary">Join Game</button>
+                </div>
+
+                <div class="players-list">
+                    <h3>Players in Room: <span id="room-code-display">-</span></h3>
+                    <ul id="players-in-room"></ul>
+                    <div id="game-controls" style="display: none;">
+                        <button id="start-game" class="btn-primary">Start Game</button>
+                        <button id="leave-room" class="btn-warning">Leave Room</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="game" class="screen">
+            <div class="game-header">
+                <div class="game-info">
+                    <h2>Room: <span id="current-room">-</span></h2>
+                    <div class="timer-container">
+                        <div class="timer" id="move-timer-display">60s</div>
+                        <div class="timer-label">Current Turn</div>
+                    </div>
+                </div>
+                <button id="quit-game" class="btn-warning"><i class="fas fa-sign-out-alt"></i> Quit Game</button>
+            </div>
+
+            <div class="game-container">
+                <div class="board-container">
+                    <div id="game-board" class="quoridor-board"></div>
+                </div>
+                
+                <div class="game-sidebar">
+                    <div class="players-turn">
+                        <h3>Players</h3>
+                        <ul id="players-turn-list"></ul>
+                    </div>
+                    
+                    <div class="action-panel">
+                        <h3>Your Turn</h3>
+                        <div class="walls-left">Walls remaining: <span id="walls-remaining">10</span></div>
+                        <div class="actions">
+                            <button id="move-pawn" class="btn-action">Move Pawn</button>
+                            <button id="place-wall" class="btn-action">Place Wall</button>
+                            <button id="end-turn" class="btn-primary" disabled>End Turn</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div id="modal" class="modal">
+            <div class="modal-content">
+                <h2 id="modal-title">Title</h2>
+                <p id="modal-message">Message</p>
+                <button id="modal-button" class="btn-primary">OK</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="/socket.io/socket.io.js"></script>
+    <script src="script.js"></script>
+</body>
+</html>

@@ -1,13 +1,577 @@
-<!-- index.html -->
 <!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quoridor Multiplayer</title>
-    <link rel="stylesheet" href="style.css">
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700&family=Roboto:wght@300;400;500&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --primary: #4a6fa5;
+            --secondary: #166088;
+            --accent: #4cb5f5;
+            --dark: #1c1c1c;
+            --light: #f4f4f9;
+            --warning: #ff6b6b;
+            --success: #52b788;
+            --player-1: #ff6b6b;
+            --player-2: #4cb5f5;
+            --player-3: #52b788;
+            --player-4: #ffd166;
+            --player-5: #9d4edd;
+            --player-6: #f72585;
+            --board-color: #bb9559;
+            --cell-color: #d6b77c;
+            --border-color: #8b5d33;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Montserrat', 'Roboto', sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #1c1c1c 0%, #2d2d2d 100%);
+            color: var(--light);
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .container {
+            max-width: 1200px;
+            width: 100%;
+            background: rgba(30, 30, 30, 0.9);
+            border-radius: 20px;
+            padding: 25px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.6);
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+        }
+
+        header h1 {
+            font-size: 3.2rem;
+            margin-bottom: 10px;
+            color: var(--accent);
+            text-shadow: 0 2px 10px rgba(76, 181, 245, 0.4);
+        }
+
+        header p {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            font-weight: 300;
+        }
+
+        .screen {
+            display: none;
+        }
+
+        .screen.active {
+            display: block;
+            animation: fadeIn 0.5s ease;
+        }
+
+        /* Lobby Styles */
+        .lobby-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 30px;
+            margin-top: 20px;
+        }
+
+        @media (max-width: 900px) {
+            .lobby-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .player-card, .players-list {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 25px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .player-card h2 {
+            margin-bottom: 20px;
+            color: var(--accent);
+            font-size: 1.8rem;
+        }
+
+        .settings {
+            margin-bottom: 25px;
+        }
+
+        .settings h3 {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            color: var(--light);
+        }
+
+        .setting-group {
+            margin-bottom: 20px;
+        }
+
+        .setting-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: var(--accent);
+        }
+
+        .setting-group select, .setting-group input {
+            width: 100%;
+            padding: 12px 15px;
+            border-radius: 8px;
+            border: 2px solid rgba(255, 255, 255, 0.15);
+            background: rgba(0, 0, 0, 0.3);
+            color: white;
+            font-size: 1rem;
+            transition: all 0.3s ease;
+        }
+
+        .setting-group select:focus, .setting-group input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(76, 181, 245, 0.3);
+        }
+
+        .room-input {
+            display: flex;
+            gap: 10px;
+        }
+
+        .room-input input {
+            flex: 1;
+        }
+
+        .btn-primary, .btn-secondary, .btn-warning, .btn-action {
+            padding: 14px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 8px 5px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 4px 14px rgba(74, 111, 165, 0.4);
+        }
+
+        .btn-primary:hover {
+            background: var(--secondary);
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(74, 111, 165, 0.5);
+        }
+
+        .btn-secondary {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+        }
+
+        .btn-secondary:hover {
+            background: rgba(74, 111, 165, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .btn-warning {
+            background: var(--warning);
+            color: white;
+            box-shadow: 0 4px 14px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-warning:hover {
+            background: #ff5252;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(255, 107, 107, 0.5);
+        }
+
+        .btn-action {
+            background: var(--accent);
+            color: white;
+            box-shadow: 0 4px 14px rgba(76, 181, 245, 0.4);
+        }
+
+        .btn-action:hover {
+            background: #3a9ddb;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 18px rgba(76, 181, 245, 0.5);
+        }
+
+        .players-list h3 {
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            color: var(--accent);
+        }
+
+        #players-in-room {
+            list-style: none;
+            margin-bottom: 20px;
+        }
+
+        #players-in-room li {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        #players-in-room li:hover {
+            background: rgba(255, 255, 255, 0.12);
+            transform: translateX(5px);
+        }
+
+        #players-in-room li.host::after {
+            content: "👑";
+            margin-left: auto;
+            font-size: 1.2rem;
+        }
+
+        /* Game Screen Styles */
+        .game-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .game-info {
+            display: flex;
+            align-items: center;
+            gap: 30px;
+        }
+
+        .game-info h2 {
+            color: var(--accent);
+            font-size: 1.5rem;
+        }
+
+        .timer-container {
+            text-align: center;
+        }
+
+        .timer {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--accent);
+            text-shadow: 0 2px 8px rgba(76, 181, 245, 0.5);
+        }
+
+        .timer-label {
+            font-size: 0.9rem;
+            opacity: 0.8;
+            margin-top: 5px;
+        }
+
+        .game-container {
+            display: grid;
+            grid-template-columns: 1fr 300px;
+            gap: 30px;
+        }
+
+        @media (max-width: 1000px) {
+            .game-container {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .board-container {
+            background: rgba(0, 0, 0, 0.3);
+            border-radius: 15px;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .quoridor-board {
+            width: 100%;
+            max-width: 600px;
+            aspect-ratio: 1 / 1;
+            background: var(--board-color);
+            position: relative;
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 0;
+            border: 8px solid var(--border-color);
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .cell {
+            background: var(--cell-color);
+            border: 1px solid var(--board-color);
+            position: relative;
+            cursor: pointer;
+        }
+
+        .cell:hover::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 30%;
+            height: 30%;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+        }
+
+        .pawn {
+            width: 70%;
+            height: 70%;
+            border-radius: 50%;
+            position: absolute;
+            top: 15%;
+            left: 15%;
+            z-index: 10;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4);
+            transition: all 0.3s ease;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            font-weight: bold;
+        }
+
+        .pawn.player-1 { background: var(--player-1); }
+        .pawn.player-2 { background: var(--player-2); }
+        .pawn.player-3 { background: var(--player-3); }
+        .pawn.player-4 { background: var(--player-4); }
+        .pawn.player-5 { background: var(--player-5); }
+        .pawn.player-6 { background: var(--player-6); }
+
+        .wall {
+            background: #5d4037;
+            position: absolute;
+            z-index: 5;
+            border-radius: 4px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .wall.horizontal {
+            width: 22%;
+            height: 10%;
+        }
+
+        .wall.vertical {
+            width: 10%;
+            height: 22%;
+        }
+
+        .wall-placeable {
+            opacity: 0.6;
+        }
+
+        .wall-placeable:hover {
+            opacity: 1;
+            transform: scale(1.05);
+        }
+
+        .game-sidebar {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .players-turn, .action-panel {
+            background: rgba(255, 255, 255, 0.05);
+            backdrop-filter: blur(10px);
+            border-radius: 15px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .players-turn h3, .action-panel h3 {
+            margin-bottom: 15px;
+            color: var(--accent);
+            font-size: 1.3rem;
+        }
+
+        #players-turn-list {
+            list-style: none;
+        }
+
+        #players-turn-list li {
+            padding: 12px 15px;
+            margin-bottom: 8px;
+            background: rgba(255, 255, 255, 0.08);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            transition: all 0.3s ease;
+        }
+
+        #players-turn-list li.active {
+            border-left: 4px solid var(--accent);
+            background: rgba(74, 111, 165, 0.2);
+            transform: translateX(5px);
+        }
+
+        .player-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        .walls-left {
+            margin-bottom: 15px;
+            font-weight: 600;
+            color: var(--accent);
+            font-size: 1.1rem;
+        }
+
+        .actions {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        /* Modal Styles */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.85);
+            z-index: 100;
+            justify-content: center;
+            align-items: center;
+            backdrop-filter: blur(5px);
+        }
+
+        .modal.active {
+            display: flex;
+            animation: fadeIn 0.3s ease;
+        }
+
+        .modal-content {
+            background: #2d2d2d;
+            padding: 35px;
+            border-radius: 15px;
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+            box-shadow: 0 15px 40px rgba(0, 0, 0, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .modal-content h2 {
+            margin-bottom: 15px;
+            color: var(--accent);
+            font-size: 2rem;
+        }
+
+        .modal-content p {
+            margin-bottom: 25px;
+            line-height: 1.5;
+            font-size: 1.1rem;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        /* Responsive Design */
+        @media (max-width: 768px) {
+            .game-header {
+                flex-direction: column;
+                gap: 15px;
+            }
+            
+            .game-info {
+                flex-direction: column;
+                gap: 10px;
+                text-align: center;
+            }
+            
+            .quoridor-board {
+                max-width: 350px;
+            }
+            
+            header h1 {
+                font-size: 2.5rem;
+            }
+        }
+
+        /* Game controls */
+        .controls {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        /* Instructions */
+        .instructions {
+            margin-top: 30px;
+            padding: 20px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 15px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .instructions h3 {
+            color: var(--accent);
+            margin-bottom: 15px;
+        }
+
+        .instructions ul {
+            list-style: none;
+            padding-left: 20px;
+        }
+
+        .instructions li {
+            margin-bottom: 10px;
+            display: flex;
+            align-items: flex-start;
+            gap: 10px;
+        }
+
+        .instructions li i {
+            color: var(--accent);
+            margin-top: 4px;
+        }
+    </style>
 </head>
 <body>
     <div class="container">
@@ -40,22 +604,36 @@
                             <label for="room-id">Room Code:</label>
                             <div class="room-input">
                                 <input type="text" id="room-id" placeholder="Enter room code">
-                                <button id="generate-room"><i class="fas fa-dice"></i></button>
+                                <button id="generate-room" class="btn-action"><i class="fas fa-dice"></i></button>
                             </div>
                         </div>
                     </div>
-                    <button id="create-room" class="btn-primary">Create Game</button>
-                    <button id="join-room" class="btn-secondary">Join Game</button>
+                    <div class="controls">
+                        <button id="create-room" class="btn-primary"><i class="fas fa-plus"></i> Create Game</button>
+                        <button id="join-room" class="btn-secondary"><i class="fas fa-sign-in-alt"></i> Join Game</button>
+                    </div>
                 </div>
 
                 <div class="players-list">
                     <h3>Players in Room: <span id="room-code-display">-</span></h3>
-                    <ul id="players-in-room"></ul>
+                    <ul id="players-in-room">
+                        <li>No players yet</li>
+                    </ul>
                     <div id="game-controls" style="display: none;">
-                        <button id="start-game" class="btn-primary">Start Game</button>
-                        <button id="leave-room" class="btn-warning">Leave Room</button>
+                        <button id="start-game" class="btn-primary"><i class="fas fa-play"></i> Start Game</button>
+                        <button id="leave-room" class="btn-warning"><i class="fas fa-sign-out-alt"></i> Leave Room</button>
                     </div>
                 </div>
+            </div>
+
+            <div class="instructions">
+                <h3>How to Play</h3>
+                <ul>
+                    <li><i class="fas fa-info-circle"></i> <strong>Objective:</strong> Be the first to reach the opposite side of the board</li>
+                    <li><i class="fas fa-running"></i> <strong>Movement:</strong> Move your pawn one space horizontally or vertically</li>
+                    <li><i class="fas fa-grip-lines"></i> <strong>Walls:</strong> Place walls to block opponents' paths</li>
+                    <li><i class="fas fa-users"></i> <strong>Multiplayer:</strong> Play with 2 to 6 players in custom rooms</li>
+                </ul>
             </div>
         </div>
 
@@ -73,22 +651,27 @@
 
             <div class="game-container">
                 <div class="board-container">
-                    <div id="game-board" class="quoridor-board"></div>
+                    <div id="game-board" class="quoridor-board">
+                        <!-- Board will be generated by JavaScript -->
+                    </div>
                 </div>
                 
                 <div class="game-sidebar">
                     <div class="players-turn">
                         <h3>Players</h3>
-                        <ul id="players-turn-list"></ul>
+                        <ul id="players-turn-list">
+                            <li>Player 1 - Walls: 10</li>
+                            <li class="active">Player 2 - Walls: 10</li>
+                        </ul>
                     </div>
                     
                     <div class="action-panel">
                         <h3>Your Turn</h3>
                         <div class="walls-left">Walls remaining: <span id="walls-remaining">10</span></div>
                         <div class="actions">
-                            <button id="move-pawn" class="btn-action">Move Pawn</button>
-                            <button id="place-wall" class="btn-action">Place Wall</button>
-                            <button id="end-turn" class="btn-primary" disabled>End Turn</button>
+                            <button id="move-pawn" class="btn-action"><i class="fas fa-running"></i> Move Pawn</button>
+                            <button id="place-wall" class="btn-action"><i class="fas fa-grip-lines"></i> Place Wall</button>
+                            <button id="end-turn" class="btn-primary" disabled><i class="fas fa-forward"></i> End Turn</button>
                         </div>
                     </div>
                 </div>
@@ -104,7 +687,425 @@
         </div>
     </div>
 
-    <script src="/socket.io/socket.io.js"></script>
-    <script src="script.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DOM Elements
+            const lobbyScreen = document.getElementById('lobby');
+            const gameScreen = document.getElementById('game');
+            const modal = document.getElementById('modal');
+            const modalTitle = document.getElementById('modal-title');
+            const modalMessage = document.getElementById('modal-message');
+            const modalButton = document.getElementById('modal-button');
+            
+            // Game state variables
+            let playerId = null;
+            let roomId = null;
+            let isHost = false;
+            let currentPlayer = null;
+            let players = [];
+            let gameState = null;
+            let selectedAction = null;
+            let selectedPawn = null;
+            let possibleMoves = [];
+            let possibleWalls = [];
+            let timerInterval = null;
+            
+            // Generate random room code
+            document.getElementById('generate-room').addEventListener('click', function() {
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                let result = '';
+                for (let i = 0; i < 6; i++) {
+                    result += chars.charAt(Math.floor(Math.random() * chars.length));
+                }
+                document.getElementById('room-id').value = result;
+            });
+            
+            // Create room
+            document.getElementById('create-room').addEventListener('click', function() {
+                const playerCount = parseInt(document.getElementById('player-count').value);
+                const moveTimer = parseInt(document.getElementById('move-timer').value);
+                roomId = document.getElementById('room-id').value || generateRoomId();
+                
+                if (roomId.length < 4) {
+                    showModal('Error', 'Room code must be at least 4 characters long', 'Try Again');
+                    return;
+                }
+                
+                // Simulate room creation (in a real app, this would communicate with a server)
+                simulateRoomCreation(roomId, playerCount, moveTimer);
+            });
+            
+            // Join room
+            document.getElementById('join-room').addEventListener('click', function() {
+                roomId = document.getElementById('room-id').value;
+                
+                if (!roomId) {
+                    showModal('Error', 'Please enter a room code', 'OK');
+                    return;
+                }
+                
+                // Simulate joining a room (in a real app, this would communicate with a server)
+                simulateJoiningRoom(roomId);
+            });
+            
+            // Start game
+            document.getElementById('start-game').addEventListener('click', function() {
+                // Simulate starting the game
+                simulateGameStart();
+            });
+            
+            // Leave room
+            document.getElementById('leave-room').addEventListener('click', function() {
+                resetLobby();
+                showModal('Room Left', 'You have left the room', 'OK');
+            });
+            
+            // Quit game
+            document.getElementById('quit-game').addEventListener('click', function() {
+                resetLobby();
+                showScreen('lobby');
+                showModal('Game Ended', 'You have left the game', 'OK');
+            });
+            
+            // Game actions
+            document.getElementById('move-pawn').addEventListener('click', function() {
+                selectedAction = 'move';
+                updateActionButtons();
+                calculatePossibleMoves();
+            });
+            
+            document.getElementById('place-wall').addEventListener('click', function() {
+                selectedAction = 'wall';
+                updateActionButtons();
+                calculatePossibleWalls();
+            });
+            
+            document.getElementById('end-turn').addEventListener('click', function() {
+                // Simulate ending turn
+                simulateEndTurn();
+            });
+            
+            // Modal button
+            modalButton.addEventListener('click', function() {
+                modal.classList.remove('active');
+            });
+            
+            // Initialize the game board
+            initializeBoard();
+            
+            // Simulation functions (would be replaced with real server communication)
+            function simulateRoomCreation(roomId, playerCount, moveTimer) {
+                playerId = 'player-' + Math.floor(Math.random() * 1000);
+                isHost = true;
+                
+                document.getElementById('player-name').textContent = `Player ${playerId.substring(8)}`;
+                
+                const playersList = document.getElementById('players-in-room');
+                playersList.innerHTML = `
+                    <li class="host">${playerId.substring(8)} (You) 👑</li>
+                `;
+                
+                document.getElementById('room-code-display').textContent = roomId;
+                document.getElementById('game-controls').style.display = 'block';
+                
+                showModal('Room Created', `Room ${roomId} has been created. Share the code with friends!`, 'OK');
+            }
+            
+            function simulateJoiningRoom(roomId) {
+                playerId = 'player-' + Math.floor(Math.random() * 1000);
+                isHost = false;
+                
+                document.getElementById('player-name').textContent = `Player ${playerId.substring(8)}`;
+                
+                const playersList = document.getElementById('players-in-room');
+                playersList.innerHTML = `
+                    <li class="host">Player-123 👑</li>
+                    <li>${playerId.substring(8)} (You)</li>
+                `;
+                
+                document.getElementById('room-code-display').textContent = roomId;
+                document.getElementById('game-controls').style.display = 'none';
+                
+                showModal('Room Joined', `You've joined room ${roomId}`, 'OK');
+            }
+            
+            function simulateGameStart() {
+                // Create a mock game state
+                gameState = {
+                    players: [
+                        { id: 'player-123', color: 1, walls: 10, position: { x: 4, y: 8 } },
+                        { id: playerId, color: 2, walls: 10, position: { x: 4, y: 0 } }
+                    ],
+                    walls: [],
+                    currentPlayerIndex: 0
+                };
+                
+                currentPlayer = 'player-123';
+                
+                renderGame();
+                showScreen('game');
+                startTimer(60);
+            }
+            
+            function simulateEndTurn() {
+                // Switch turns
+                if (currentPlayer === 'player-123') {
+                    currentPlayer = playerId;
+                    document.getElementById('end-turn').disabled = true;
+                    startTimer(60);
+                } else {
+                    currentPlayer = 'player-123';
+                    document.getElementById('end-turn').disabled = true;
+                    startTimer(60);
+                }
+                
+                updateTurnIndicator();
+            }
+            
+            function initializeBoard() {
+                const board = document.getElementById('game-board');
+                board.innerHTML = '';
+                
+                // Create board cells
+                for (let y = 0; y < 9; y++) {
+                    for (let x = 0; x < 9; x++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.dataset.x = x;
+                        cell.dataset.y = y;
+                        board.appendChild(cell);
+                    }
+                }
+            }
+            
+            function renderGame() {
+                const board = document.getElementById('game-board');
+                board.innerHTML = '';
+                
+                // Create board cells
+                for (let y = 0; y < 9; y++) {
+                    for (let x = 0; x < 9; x++) {
+                        const cell = document.createElement('div');
+                        cell.className = 'cell';
+                        cell.dataset.x = x;
+                        cell.dataset.y = y;
+                        board.appendChild(cell);
+                    }
+                }
+                
+                // Render pawns
+                gameState.players.forEach(player => {
+                    const pawn = document.createElement('div');
+                    pawn.className = `pawn player-${player.color}`;
+                    pawn.style.gridColumn = player.position.x + 1;
+                    pawn.style.gridRow = player.position.y + 1;
+                    pawn.dataset.player = player.id;
+                    
+                    // Add player number to pawn
+                    const playerNum = document.createElement('span');
+                    playerNum.textContent = gameState.players.indexOf(player) + 1;
+                    pawn.appendChild(playerNum);
+                    
+                    board.appendChild(pawn);
+                });
+                
+                // Render existing walls
+                gameState.walls.forEach(wall => {
+                    placeWallOnBoard(wall);
+                });
+                
+                updateGame();
+            }
+            
+            function updateGame() {
+                // Update player list
+                const playersList = document.getElementById('players-turn-list');
+                playersList.innerHTML = '';
+                
+                gameState.players.forEach(player => {
+                    const li = document.createElement('li');
+                    if (player.id === currentPlayer) {
+                        li.classList.add('active');
+                    }
+                    
+                    const indicator = document.createElement('span');
+                    indicator.className = `player-indicator`;
+                    indicator.style.backgroundColor = getPlayerColor(player.color);
+                    
+                    const playerText = document.createTextNode(`Player ${gameState.players.indexOf(player) + 1} - Walls: ${player.walls}`);
+                    
+                    li.appendChild(indicator);
+                    li.appendChild(playerText);
+                    
+                    playersList.appendChild(li);
+                });
+                
+                // Update walls remaining for current player
+                const currentPlayerData = gameState.players.find(p => p.id === playerId);
+                if (currentPlayerData) {
+                    document.getElementById('walls-remaining').textContent = currentPlayerData.walls;
+                }
+                
+                // Update room code
+                document.getElementById('current-room').textContent = roomId;
+            }
+            
+            function updateTurnIndicator() {
+                const isMyTurn = currentPlayer === playerId;
+                document.getElementById('end-turn').disabled = !isMyTurn;
+                
+                if (isMyTurn) {
+                    document.querySelector('.action-panel h3').textContent = 'Your Turn';
+                } else {
+                    document.querySelector('.action-panel h3').textContent = 'Other Player\'s Turn';
+                }
+            }
+            
+            function startTimer(seconds) {
+                const timerDisplay = document.getElementById('move-timer-display');
+                
+                // Clear any existing timer
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                }
+                
+                timerDisplay.textContent = `${seconds}s`;
+                
+                let timeLeft = seconds;
+                timerInterval = setInterval(() => {
+                    timeLeft--;
+                    timerDisplay.textContent = `${timeLeft}s`;
+                    
+                    if (timeLeft <= 0) {
+                        clearInterval(timerInterval);
+                        // Auto-end turn if time runs out
+                        if (currentPlayer === playerId) {
+                            simulateEndTurn();
+                        }
+                    }
+                }, 1000);
+            }
+            
+            function calculatePossibleMoves() {
+                // This would calculate and highlight possible moves
+                // For demo purposes, we'll just show some example moves
+                possibleMoves = [{x: 3, y: 0}, {x: 4, y: 1}, {x: 5, y: 0}];
+                highlightPossibleMoves();
+            }
+            
+            function calculatePossibleWalls() {
+                // This would calculate and highlight possible wall placements
+                // For demo purposes, we'll just show some example walls
+                possibleWalls = [
+                    {x: 3, y: 0, orientation: 'horizontal'},
+                    {x: 4, y: 0, orientation: 'horizontal'},
+                    {x: 2, y: 1, orientation: 'vertical'}
+                ];
+                highlightPossibleWalls();
+            }
+            
+            function highlightPossibleMoves() {
+                // Implementation for highlighting possible moves
+                // This would be more complex in a real game
+                showModal('Move Mode', 'Click on a highlighted cell to move your pawn', 'OK');
+            }
+            
+            function highlightPossibleWalls() {
+                // Implementation for highlighting possible wall placements
+                // This would be more complex in a real game
+                showModal('Wall Placement', 'Click on a wall position to place your wall', 'OK');
+            }
+            
+            function updateActionButtons() {
+                const moveBtn = document.getElementById('move-pawn');
+                const wallBtn = document.getElementById('place-wall');
+                
+                if (selectedAction === 'move') {
+                    moveBtn.classList.add('active');
+                    wallBtn.classList.remove('active');
+                } else if (selectedAction === 'wall') {
+                    moveBtn.classList.remove('active');
+                    wallBtn.classList.add('active');
+                } else {
+                    moveBtn.classList.remove('active');
+                    wallBtn.classList.remove('active');
+                }
+            }
+            
+            function getPlayerColor(colorIndex) {
+                const colors = [
+                    'var(--player-1)', 
+                    'var(--player-2)', 
+                    'var(--player-3)', 
+                    'var(--player-4)', 
+                    'var(--player-5)', 
+                    'var(--player-6)'
+                ];
+                return colors[colorIndex - 1] || colors[0];
+            }
+            
+            function placeWallOnBoard(wall) {
+                const board = document.getElementById('game-board');
+                const wallElement = document.createElement('div');
+                wallElement.className = `wall ${wall.orientation}`;
+                
+                // Position the wall based on coordinates and orientation
+                if (wall.orientation === 'horizontal') {
+                    wallElement.style.gridColumn = wall.x + 1;
+                    wallElement.style.gridRow = wall.y + 1;
+                    wallElement.style.marginTop = '45%';
+                } else {
+                    wallElement.style.gridColumn = wall.x + 1;
+                    wallElement.style.gridRow = wall.y + 1;
+                    wallElement.style.marginLeft = '45%';
+                }
+                
+                board.appendChild(wallElement);
+            }
+            
+            function resetGame() {
+                gameState = null;
+                currentPlayer = null;
+                selectedAction = null;
+                possibleMoves = [];
+                possibleWalls = [];
+                
+                if (timerInterval) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                }
+            }
+            
+            function resetLobby() {
+                roomId = null;
+                isHost = false;
+                players = [];
+                document.getElementById('room-code-display').textContent = '-';
+                document.getElementById('players-in-room').innerHTML = '<li>No players yet</li>';
+                document.getElementById('game-controls').style.display = 'none';
+            }
+            
+            function generateRoomId() {
+                return Math.random().toString(36).substring(2, 8).toUpperCase();
+            }
+            
+            function showScreen(screenName) {
+                document.querySelectorAll('.screen').forEach(screen => {
+                    screen.classList.remove('active');
+                });
+                document.getElementById(screenName).classList.add('active');
+            }
+            
+            function showModal(title, message, buttonText) {
+                modalTitle.textContent = title;
+                modalMessage.textContent = message;
+                modalButton.textContent = buttonText;
+                modal.classList.add('active');
+            }
+            
+            // Initialize the game
+            showScreen('lobby');
+        });
+    </script>
 </body>
 </html>
